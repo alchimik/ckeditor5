@@ -173,6 +173,7 @@ export default abstract class EditorUI extends ObservableMixin() {
 		// Clean–up the references to the CKEditor instance stored in the native editable DOM elements.
 		for ( const domElement of this._editableElementsMap.values() ) {
 			( domElement as any ).ckeditorInstance = null;
+			this.editor.keystrokes.stopListening( domElement );
 		}
 
 		this._editableElementsMap = new Map();
@@ -220,6 +221,23 @@ export default abstract class EditorUI extends ObservableMixin() {
 		else {
 			this.once<EditorUIReadyEvent>( 'ready', setUpKeystrokeHandler );
 		}
+	}
+
+	/**
+	 *
+	 * @param rootName
+	 */
+	public removeEditableElement( rootName: string ): void {
+		const domElement = this._editableElementsMap.get( rootName );
+
+		if ( !domElement ) {
+			return;
+		}
+
+		this.editor.keystrokes.stopListening( domElement );
+		this.focusTracker.remove( domElement );
+
+		( domElement as any ).ckeditorInstance = null;
 	}
 
 	/**

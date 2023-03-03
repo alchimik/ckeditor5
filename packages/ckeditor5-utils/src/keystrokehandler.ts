@@ -132,6 +132,14 @@ export default class KeystrokeHandler {
 	 * Destroys the keystroke handler.
 	 */
 	public destroy(): void {
-		this._listener.stopListening();
+		this.stopListening();
+	}
+
+	/**
+	 *
+	 * @param emitter
+	 */
+	public stopListening( emitter?: Emitter | HTMLElement | Window ): void {
+		this._listener.stopListening( emitter );
 	}
 }

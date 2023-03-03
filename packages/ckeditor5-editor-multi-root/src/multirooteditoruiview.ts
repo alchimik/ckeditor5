@@ -34,6 +34,11 @@ export default class MultiRootEditorUIView extends EditorUIView {
 	public readonly editable: InlineEditableUIView;
 
 	/**
+	 * @internal
+	 */
+	private readonly _editingView: View;
+
+	/**
 	 * Creates an instance of the multi-root editor UI view.
 	 *
 	 * @param locale The {@link module:core/editor/editor~Editor#locale} instance.
@@ -61,6 +66,8 @@ export default class MultiRootEditorUIView extends EditorUIView {
 
 		const t = locale.t;
 
+		this._editingView = editingView;
+
 		this.toolbar = new ToolbarView( locale, {
 			shouldGroupWhenFull: options.shouldToolbarGroupWhenFull
 		} );
@@ -69,7 +76,7 @@ export default class MultiRootEditorUIView extends EditorUIView {
 
 		// Create `InlineEditableUIView` instance for each editable.
 		for ( const editableName of editableNames ) {
-			const editable = new InlineEditableUIView( locale, editingView, options.editableElements?.[ editableName ], {
+			const editable = new InlineEditableUIView( locale, this._editingView, options.editableElements?.[ editableName ], {
 				label: editable => {
 					return t( 'Rich Text Editor. Editing area: %0', editable.name! );
 				}
@@ -96,12 +103,49 @@ export default class MultiRootEditorUIView extends EditorUIView {
 	}
 
 	/**
+	 *
+	 * @param editableName
+	 * @param editableElement
+	 */
+	public addRoot( editableName: string, editableElement?: HTMLElement ): InlineEditableUIView {
+		const t = this.locale.t;
+
+		const editable = new InlineEditableUIView( this.locale, this._editingView, editableElement, {
+			label: editable => {
+				return t( 'Rich Text Editor. Editing area: %0', editable.name! );
+			}
+		} );
+
+		this.editables[ editableName ] = editable;
+		editable.name = editableName;
+
+		// This will render `editable` as `this` is already rendered.
+		this.registerChild( editable );
+
+		return editable;
+	}
+
+	/**
+	 *
+	 * @param editableName
+	 */
+	public removeRoot( editableName: string ): void {
+		const editable = this.editables[ editableName ];
+
+		this.deregisterChild( editable );
+
+		delete this.editables[ editableName ];
+
+		editable.destroy();
+	}
+
+	/**
 	 * @inheritDoc
 	 */
 	public override render(): void {
 		super.render();
 
 		this.registerChild( Object.values( this.editables ) );
-		this.registerChild( [ this.toolbar ] );
+		this.registerChild( this.toolbar );
 	}
 }

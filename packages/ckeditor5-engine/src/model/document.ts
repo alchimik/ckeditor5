@@ -203,6 +203,25 @@ export default class Document extends EmitterMixin() {
 	}
 
 	/**
+	 *
+	 * @param rootName
+	 */
+	public removeRoot( rootName: string ) {
+		const root = this.roots.get( rootName );
+
+		if ( !root ) {
+			/**
+			 * Cannot remove a root that does not exist.
+			 *
+			 * @error model-document-removeroot-not-exist
+			 */
+			throw new CKEditorError( 'model-document-removeroot-not-exist', this, { name: rootName } );
+		}
+
+		this.roots.remove( root );
+	}
+
+	/**
 	 * Removes all event listeners set by the document instance.
 	 */
 	public destroy(): void {

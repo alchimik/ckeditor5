@@ -67,6 +67,8 @@ export default class FakeSelectionObserver extends Observer {
 		}, { priority: 'lowest' } );
 	}
 
+	public override stopObserving(): void {}
+
 	/**
 	 * @inheritDoc
 	 */

@@ -63,7 +63,7 @@ export default class MultiRootEditor extends DataApiMixin( Editor ) {
 	/**
 	 * The elements on which the editor has been initialized.
 	 */
-	public readonly sourceElements: Record<string, HTMLElement> | undefined;
+	public readonly sourceElements: Record<string, HTMLElement>;
 
 	/**
 	 * Creates an instance of the multi-root editor.
@@ -90,6 +90,8 @@ export default class MultiRootEditor extends DataApiMixin( Editor ) {
 
 		if ( !sourceIsData ) {
 			this.sourceElements = sourceElementsOrData as Record<string, HTMLElement>;
+		} else {
+			this.sourceElements = {};
 		}
 
 		if ( this.config.get( 'initialData' ) === undefined ) {
@@ -171,6 +173,74 @@ export default class MultiRootEditor extends DataApiMixin( Editor ) {
 					}
 				}
 			} );
+	}
+
+	/**
+	 * Adds a new root to the editor.
+	 *
+	 * After adding a root, you will be able to modify its content, and set and retrieve its data.
+	 *
+	 * If DOM element is passed as `sourceElementOrData`, the root is initialized on this element and its content is used
+	 * as the initial data.
+	 *
+	 * If initial data is passed as `sourceElementOrData`, the editor will create and return a new DOM element for the root.
+	 * Then, you will be able to append the DOM element to your website.
+	 *
+	 * Note that all root names must be unique. An error will be thrown if you will try to create a root with the name same as
+	 * an already existing root.
+	 *
+	 * Note that if you are using real-time collaboration, you should specify callback that will be executed after a root was
+	 * added on a remote client. In this callback, you should handle the new root (mostly append it to your website in a desired place).
+	 *
+	 * @param rootName Name of the root to add.
+	 * @param sourceElementOrData DOM element or initial data for the root.
+	 */
+	public addRoot( rootName: string, sourceElementOrData: HTMLElement | string ): HTMLElement {
+		const sourceIsData = typeof sourceElementOrData === 'string';
+		const data = sourceIsData ? sourceElementOrData : sourceElementOrData.innerHTML;
+
+		if ( !sourceIsData ) {
+			this.sourceElements[ rootName ] = sourceElementOrData;
+
+			secureSourceElement( this, sourceElementOrData );
+		}
+
+		const root = this.model.document.createRoot( '$root', rootName );
+		const editable = this.ui.view.addRoot( rootName, !sourceIsData ? sourceElementOrData : undefined );
+
+		this.ui.addEditable( editable );
+
+		this.model.enqueueChange( { isUndoable: false }, writer => {
+			writer.insert( this.data.parse( data, root ), root, 0 );
+		} );
+
+		return editable.element!;
+	}
+
+	/**
+	 * Removes a root from the editor.
+	 *
+	 * Updates the original editor element with the data if the
+	 * {@link module:core/editor/editorconfig~EditorConfig#updateSourceElementOnDestroy `updateSourceElementOnDestroy`}
+	 * configuration option is set to `true`.
+	 *
+	 * Note that if you are using real-time collaboration, you should specify callback that will be executed after a root was
+	 * removed on a remote client. In this callback, you should handle the new root (mostly append it to your website in a desired place).
+	 *
+	 * @param rootName Name of the root to remove.
+	 */
+	public removeRoot( rootName: string ): void {
+		const shouldUpdateSourceElement = this.config.get( 'updateSourceElementOnDestroy' );
+		const data = this.getData( { rootName } );
+		const editable = this.ui.view.editables[ rootName ];
+
+		this.ui.removeEditable( editable );
+		this.ui.view.removeRoot( rootName );
+		this.model.document.removeRoot( rootName );
+
+		if ( this.sourceElements[ rootName ] ) {
+			setDataInElement( editable.element!, shouldUpdateSourceElement ? data : '' );
+		}
 	}
 
 	/**

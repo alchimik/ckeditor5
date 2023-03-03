@@ -110,10 +110,16 @@ export default abstract class Observer extends DomEmitterMixin() {
 	/**
 	 * Starts observing the given root element.
 	 *
+	 * @param domElement DOM element to observe.
 	 * @param name The name of the root element.
 	 */
-
 	public abstract observe( domElement: HTMLElement, name: string ): void;
+
+	/**
+	 *
+	 * @param domElement
+	 */
+	public abstract stopObserving( domElement: HTMLElement ): void;
 }
 
 /**
