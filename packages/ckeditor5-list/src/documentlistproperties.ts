@@ -33,9 +33,3 @@ export default class DocumentListProperties extends Plugin {
 		return 'DocumentListProperties';
 	}
 }
-
-declare module '@ckeditor/ckeditor5-core' {
-	interface PluginsMap {
-		[ DocumentListProperties.pluginName ]: DocumentListProperties;
-	}
-}

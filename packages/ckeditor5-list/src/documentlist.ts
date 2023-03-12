@@ -32,9 +32,3 @@ export default class DocumentList extends Plugin {
 		return 'DocumentList';
 	}
 }
-
-declare module '@ckeditor/ckeditor5-core' {
-	interface PluginsMap {
-		[ DocumentList.pluginName ]: DocumentList;
-	}
-}

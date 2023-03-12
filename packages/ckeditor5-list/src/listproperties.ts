@@ -32,9 +32,3 @@ export default class ListProperties extends Plugin {
 		return 'ListProperties';
 	}
 }
-
-declare module '@ckeditor/ckeditor5-core' {
-	interface PluginsMap {
-		[ ListProperties.pluginName ]: ListProperties;
-	}
-}
